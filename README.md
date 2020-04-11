@@ -5,6 +5,6 @@ Written in Java
 
 ## Libs
 
-- AndroidX
+- RxAndroid
 - Retrofit
 - Glide
