@@ -1,10 +1,11 @@
 package codes.carl.gallery.network;
 
-import codes.carl.gallery.model.network.PicturesResponse;
-import io.reactivex.rxjava3.core.Observable;
+import java.util.List;
+
+import codes.carl.gallery.model.Picture;
+import io.reactivex.Observable;
 import retrofit2.Response;
 import retrofit2.http.GET;
-import retrofit2.http.Query;
 
 /**
  * Describes the Lorem Picsum API
@@ -19,6 +20,6 @@ public interface API {
      * @return A list of images
      */
     @GET("list")
-    Observable<Response<PicturesResponse>> getImageList();
+    Observable<Response<List<Picture>>> getImageList();
 
 }
