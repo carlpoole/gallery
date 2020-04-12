@@ -23,6 +23,7 @@ import java.util.List;
 import codes.carl.gallery.model.Picture;
 import codes.carl.gallery.utils.GlideApp;
 import codes.carl.gallery.utils.GlideRequest;
+import codes.carl.gallery.utils.SortUtils;
 
 /**
  * Handles the display and replacement of picture views in the gallery view.
@@ -88,6 +89,22 @@ public class GalleryAdapter extends RecyclerView.Adapter<GalleryAdapter.PictureV
      */
     public void addAll(List<Picture> pictures) {
         this.pictures.addAll(pictures);
+        notifyDataSetChanged();
+    }
+
+    /**
+     * Sorts the pictures in the gallery by the author's name.
+     */
+    public void alphaSort() {
+        pictures = SortUtils.alphaSort(pictures);
+        notifyDataSetChanged();
+    }
+
+    /**
+     * Sorts the pictures in the gallery by the image size.
+     */
+    public void sizeSort() {
+        SortUtils.sizeSort(pictures);
         notifyDataSetChanged();
     }
 

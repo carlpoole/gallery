@@ -20,6 +20,15 @@ public class Picture {
     public Picture() {
     }
 
+    /**
+     * Creates a new empty picture with just an author name
+     *
+     * @param author The author of the blank picture
+     */
+    public Picture(String author) {
+        this.author = author;
+    }
+
     public String getId() {
         return id;
     }
@@ -51,10 +60,10 @@ public class Picture {
         Picture picture = (Picture) o;
         return width == picture.width &&
                 height == picture.height &&
-                id.equals(picture.id) &&
-                author.equals(picture.author) &&
-                url.equals(picture.url) &&
-                download_url.equals(picture.download_url);
+                Objects.equals(id, picture.id) &&
+                Objects.equals(author, picture.author) &&
+                Objects.equals(url, picture.url) &&
+                Objects.equals(download_url, picture.download_url);
     }
 
     @Override

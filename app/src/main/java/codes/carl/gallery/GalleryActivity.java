@@ -21,11 +21,17 @@ import java.util.List;
 
 import codes.carl.gallery.model.Picture;
 import codes.carl.gallery.network.Client;
+import codes.carl.gallery.utils.SortMethod;
+import codes.carl.gallery.utils.SortUtils;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.observers.DisposableObserver;
 import io.reactivex.schedulers.Schedulers;
 import retrofit2.Response;
+
+import static codes.carl.gallery.utils.SortMethod.ALPHA;
+import static codes.carl.gallery.utils.SortMethod.NORMAL;
+import static codes.carl.gallery.utils.SortMethod.SIZE;
 
 /**
  * Activity that displays the image gallery
@@ -68,6 +74,11 @@ public class GalleryActivity extends AppCompatActivity {
      */
     GalleryAdapter adapter;
 
+    /**
+     * The current sort option for the gallery.
+     */
+    SortMethod sortMethod = NORMAL;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -78,12 +89,9 @@ public class GalleryActivity extends AppCompatActivity {
         gallery = findViewById(R.id.galleryView);
         swipeReload = findViewById(R.id.swipeReload);
 
-        swipeReload.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
-            @Override
-            public void onRefresh() {
-                if(!isRefreshing)
-                    loadImages();
-            }
+        swipeReload.setOnRefreshListener(() -> {
+            if (!isRefreshing)
+                loadImages();
         });
 
         // Set the columns in the gallery grid depending on the orientation of the device
@@ -126,10 +134,16 @@ public class GalleryActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         switch (item.getItemId()) {
             case R.id.authorSort:
-                // Todo: sort by author name
+                if (adapter != null) {
+                    sortMethod = ALPHA;
+                    adapter.alphaSort();
+                }
                 return true;
             case R.id.imageSizeSort:
-                // Todo: sort by image size
+                if (adapter != null) {
+                    sortMethod = SIZE;
+                    adapter.sizeSort();
+                }
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
@@ -141,7 +155,6 @@ public class GalleryActivity extends AppCompatActivity {
      */
     private void loadImages() {
         isRefreshing = true;
-        // Todo: show a spinner or loading view
 
         rxDisposables.add(Client.getInstance().getPicsumAPI().getImageList()
                 .subscribeOn(Schedulers.io())
@@ -180,7 +193,21 @@ public class GalleryActivity extends AppCompatActivity {
      * @param newPictures The pictures to load into the adapter
      */
     private void setupGallery(List<Picture> newPictures) {
-        if(adapter == null || didImagesChange(adapter.getPictures(), newPictures)) {
+
+        // Pre-sort new image results based on the current sort option
+        switch (sortMethod) {
+            case ALPHA:
+                newPictures = SortUtils.alphaSort(newPictures);
+                break;
+            case SIZE:
+                SortUtils.sizeSort(newPictures);
+                break;
+            default:
+                break;
+        }
+
+        // Only update the list if the downloaded image data changed
+        if (adapter == null || !adapter.getPictures().equals(newPictures)) {
             adapter = new GalleryAdapter(this, newPictures, sizeProvider);
             gallery.setAdapter(adapter);
 
@@ -189,9 +216,5 @@ public class GalleryActivity extends AppCompatActivity {
 
             gallery.addOnScrollListener(preloader);
         }
-    }
-
-    private boolean didImagesChange(List<Picture> pictures, List<Picture> newPictures) {
-        return !pictures.equals(newPictures);
     }
 }
