@@ -1,9 +1,11 @@
 <resources>
-    <string name="app_name">Gallery</string>
+    <string name="app_name">Picsum Gallery</string>
+    <string name="app_title">Picsum Gallery</string>
 
     <string name="title_activity_image">ImageActivity</string>
     <string name="dummy_button">Dummy Button</string>
     <string name="dummy_content">DUMMY\nCONTENT</string>
     <string name="menu_author_sort">Author</string>
     <string name="menu_size_sort">Image Size</string>
+
 </resources>
