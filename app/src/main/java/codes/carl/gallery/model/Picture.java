@@ -1,5 +1,6 @@
 package codes.carl.gallery.model;
 
+import java.math.BigInteger;
 import java.util.Objects;
 
 /**
@@ -21,12 +22,23 @@ public class Picture {
     }
 
     /**
-     * Creates a new empty picture with just an author name
+     * Creates a new empty picture with just an author name.
      *
      * @param author The author of the blank picture
      */
     public Picture(String author) {
         this.author = author;
+    }
+
+    /**
+     * Creates a new empty picture with just a "canvas" size.
+     *
+     * @param width The width of the blank picture
+     * @param height The height of the blank picture
+     */
+    public Picture(long width, long height) {
+        this.width = width;
+        this.height = height;
     }
 
     public String getId() {
@@ -51,6 +63,18 @@ public class Picture {
 
     public String getDownload_url() {
         return download_url;
+    }
+
+    public long totalPixelsSize() {
+        BigInteger area = BigInteger.valueOf(height).multiply(BigInteger.valueOf(width));
+
+        if(area.compareTo(BigInteger.valueOf(Long.MAX_VALUE)) > 0) {
+            return Long.MAX_VALUE;
+        } else if (area.compareTo(BigInteger.ZERO) < 0) {
+            return 0;
+        }
+
+        return area.longValue();
     }
 
     @Override

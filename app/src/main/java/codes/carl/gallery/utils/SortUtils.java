@@ -3,6 +3,7 @@ package codes.carl.gallery.utils;
 import java.util.List;
 
 import codes.carl.gallery.model.Picture;
+import codes.carl.gallery.utils.sort.QuickSort;
 import codes.carl.gallery.utils.sort.Trie;
 
 /**
@@ -33,6 +34,6 @@ public class SortUtils {
      * @param pictures A sorted list of pictures based on their dimensions
      */
     public static void sizeSort(List<Picture> pictures) {
-
+        QuickSort.run(pictures);
     }
 }

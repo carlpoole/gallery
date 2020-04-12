@@ -11,7 +11,7 @@ import codes.carl.gallery.utils.SortUtils;
 import static org.junit.Assert.*;
 
 /**
- * Tests for the custom sort methods.
+ * Tests for the custom Alphabetical sort method.
  *
  * @see codes.carl.gallery.utils.SortUtils
  */
@@ -25,6 +25,7 @@ public class AlphaSortTests {
         // Initial unsorted test case
         List<Picture> pics = new ArrayList<>();
         pics.add(new Picture("Paul"));
+        pics.add(new Picture("Carl"));
         pics.add(new Picture("Andrew"));
         pics.add(new Picture("Zoom"));
         pics.add(new Picture("Carl"));
@@ -32,6 +33,7 @@ public class AlphaSortTests {
         // Sorted test case
         List<Picture> sortedCheck = new ArrayList<>();
         sortedCheck.add(new Picture("Andrew"));
+        sortedCheck.add(new Picture("Carl"));
         sortedCheck.add(new Picture("Carl"));
         sortedCheck.add(new Picture("Paul"));
         sortedCheck.add(new Picture("Zoom"));
