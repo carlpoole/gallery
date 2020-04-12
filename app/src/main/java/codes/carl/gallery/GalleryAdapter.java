@@ -21,9 +21,12 @@ import static com.bumptech.glide.load.resource.drawable.DrawableTransitionOption
 import java.util.List;
 
 import codes.carl.gallery.model.Picture;
+import codes.carl.gallery.model.views.GalleryViewModel;
 import codes.carl.gallery.utils.GlideApp;
 import codes.carl.gallery.utils.GlideRequest;
 import codes.carl.gallery.utils.SortUtils;
+import io.reactivex.Observable;
+import io.reactivex.subjects.PublishSubject;
 
 /**
  * Handles the display and replacement of picture views in the gallery view.
@@ -32,9 +35,9 @@ public class GalleryAdapter extends RecyclerView.Adapter<GalleryAdapter.PictureV
         ListPreloader.PreloadModelProvider<Picture> {
 
     /**
-     * The list of pictures to display in the gallery view.
+     * ViewModel containing picture list data.
      */
-    private List<Picture> pictures;
+    private GalleryViewModel viewModel;
 
     /**
      * Inflates the picture views into the adapter.
@@ -52,14 +55,19 @@ public class GalleryAdapter extends RecyclerView.Adapter<GalleryAdapter.PictureV
     private GlideRequest<Drawable> glideRequest;
 
     /**
+     * Emits the clicked picture to subscribers.
+     */
+    private PublishSubject<Picture> clickedPicture = PublishSubject.create();
+
+    /**
      * Constructs a gallery adapter.
      *
      * @param context             Reference to the Activity context.
-     * @param pictures            The list of pictures to add to the adapter.
+     * @param viewModel           The ViewModel containing the list of pictures to add to the adapter.
      * @param preloadSizeProvider Used by the pre-loader to track the view size for preloading images.
      */
-    GalleryAdapter(Context context, List<Picture> pictures, ViewPreloadSizeProvider<Picture> preloadSizeProvider) {
-        this.pictures = pictures;
+    GalleryAdapter(Context context, GalleryViewModel viewModel, ViewPreloadSizeProvider<Picture> preloadSizeProvider) {
+        this.viewModel = viewModel;
         this.preloadSizeProvider = preloadSizeProvider;
 
         layoutInflater = LayoutInflater.from(context);
@@ -78,7 +86,7 @@ public class GalleryAdapter extends RecyclerView.Adapter<GalleryAdapter.PictureV
      * Remove all images from the gallery grid.
      */
     public void clear() {
-        pictures.clear();
+        viewModel.getPictures().clear();
         notifyDataSetChanged();
     }
 
@@ -88,7 +96,7 @@ public class GalleryAdapter extends RecyclerView.Adapter<GalleryAdapter.PictureV
      * @param pictures A list of pictures to add to the gallery grid
      */
     public void addAll(List<Picture> pictures) {
-        this.pictures.addAll(pictures);
+        viewModel.getPictures().addAll(pictures);
         notifyDataSetChanged();
     }
 
@@ -96,7 +104,7 @@ public class GalleryAdapter extends RecyclerView.Adapter<GalleryAdapter.PictureV
      * Sorts the pictures in the gallery by the author's name.
      */
     public void alphaSort() {
-        pictures = SortUtils.alphaSort(pictures);
+        viewModel.setPictures(SortUtils.alphaSort(viewModel.getPictures()));
         notifyDataSetChanged();
     }
 
@@ -104,7 +112,7 @@ public class GalleryAdapter extends RecyclerView.Adapter<GalleryAdapter.PictureV
      * Sorts the pictures in the gallery by the image size.
      */
     public void sizeSort() {
-        SortUtils.sizeSort(pictures);
+        SortUtils.sizeSort(viewModel.getPictures());
         notifyDataSetChanged();
     }
 
@@ -114,7 +122,7 @@ public class GalleryAdapter extends RecyclerView.Adapter<GalleryAdapter.PictureV
      * @return The pictures in the gallery
      */
     public List<Picture> getPictures() {
-        return pictures;
+        return viewModel.getPictures();
     }
 
     @NonNull
@@ -126,8 +134,9 @@ public class GalleryAdapter extends RecyclerView.Adapter<GalleryAdapter.PictureV
 
     @Override
     public void onBindViewHolder(@NonNull PictureViewHolder holder, int position) {
-        Picture picture = pictures.get(position);
+        Picture picture = viewModel.getPictures().get(position);
 
+        holder.picture = picture;
         holder.authorName.setText(picture.getAuthor());
         holder.loadImage(picture.getDownload_url());
 
@@ -142,7 +151,7 @@ public class GalleryAdapter extends RecyclerView.Adapter<GalleryAdapter.PictureV
      */
     @Override
     public int getItemCount() {
-        return pictures.size();
+        return viewModel.getPictures().size();
     }
 
     /**
@@ -154,7 +163,7 @@ public class GalleryAdapter extends RecyclerView.Adapter<GalleryAdapter.PictureV
     @NonNull
     @Override
     public List<Picture> getPreloadItems(int position) {
-        return pictures.subList(position, position + 1);
+        return viewModel.getPictures().subList(position, position + 1);
     }
 
     /**
@@ -167,6 +176,10 @@ public class GalleryAdapter extends RecyclerView.Adapter<GalleryAdapter.PictureV
     @Override
     public RequestBuilder<?> getPreloadRequestBuilder(@NonNull Picture item) {
         return glideRequest.clone().load(item.getDownload_url());
+    }
+
+    public Observable<Picture> clickedPictureEvent() {
+        return clickedPicture;
     }
 
     /**
@@ -190,6 +203,11 @@ public class GalleryAdapter extends RecyclerView.Adapter<GalleryAdapter.PictureV
         TextView authorName;
 
         /**
+         * The picture subject of the gallery tile.
+         */
+        Picture picture;
+
+        /**
          * Constructs the picture ViewHolder.
          *
          * @param itemView The reference to the Android view.
@@ -200,6 +218,8 @@ public class GalleryAdapter extends RecyclerView.Adapter<GalleryAdapter.PictureV
             galleryImage = itemView.findViewById(R.id.galleryImage);
             authorName = itemView.findViewById(R.id.authorName);
             infoButton = itemView.findViewById(R.id.infoButton);
+
+            galleryImage.setOnClickListener(this);
         }
 
         /**
@@ -218,7 +238,7 @@ public class GalleryAdapter extends RecyclerView.Adapter<GalleryAdapter.PictureV
          */
         @Override
         public void onClick(View view) {
-            // Todo: hook up to load full screen view
+            clickedPicture.onNext(picture);
         }
     }
 }

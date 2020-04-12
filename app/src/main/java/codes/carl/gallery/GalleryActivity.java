@@ -2,10 +2,12 @@ package codes.carl.gallery;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
+import android.content.Intent;
 import android.content.res.Configuration;
 import android.os.Bundle;
 import android.util.Log;
@@ -17,21 +19,22 @@ import com.bumptech.glide.Glide;
 import com.bumptech.glide.integration.recyclerview.RecyclerViewPreloader;
 import com.bumptech.glide.util.ViewPreloadSizeProvider;
 
+import org.parceler.Parcels;
+import org.reactivestreams.Subscriber;
+
 import java.util.List;
 
 import codes.carl.gallery.model.Picture;
+import codes.carl.gallery.model.views.GalleryViewModel;
 import codes.carl.gallery.network.Client;
-import codes.carl.gallery.utils.SortMethod;
 import codes.carl.gallery.utils.SortUtils;
 import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.observers.DisposableObserver;
 import io.reactivex.schedulers.Schedulers;
 import retrofit2.Response;
 
-import static codes.carl.gallery.utils.SortMethod.ALPHA;
-import static codes.carl.gallery.utils.SortMethod.NORMAL;
-import static codes.carl.gallery.utils.SortMethod.SIZE;
+import static codes.carl.gallery.utils.sort.SortType.ALPHA;
+import static codes.carl.gallery.utils.sort.SortType.SIZE;
 
 /**
  * Activity that displays the image gallery
@@ -44,15 +47,9 @@ public class GalleryActivity extends AppCompatActivity {
     private static final String TAG = "Gallery";
 
     /**
-     * Tracks if the gallery view is currently reloading data from Lorem Picsum.
+     * The activity view model to persist data across config changes.
      */
-    private boolean isRefreshing = false;
-
-    /**
-     * Used to clean up RxAndroid after.
-     */
-    @NonNull
-    private CompositeDisposable rxDisposables = new CompositeDisposable();
+    private GalleryViewModel viewModel;
 
     /**
      * Used for pre-loading images in the gallery view with Glide.
@@ -74,23 +71,18 @@ public class GalleryActivity extends AppCompatActivity {
      */
     GalleryAdapter adapter;
 
-    /**
-     * The current sort option for the gallery.
-     */
-    SortMethod sortMethod = NORMAL;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // Todo: handle rotation configuration change
+        viewModel = new ViewModelProvider(this).get(GalleryViewModel.class);
 
         gallery = findViewById(R.id.galleryView);
         swipeReload = findViewById(R.id.swipeReload);
 
         swipeReload.setOnRefreshListener(() -> {
-            if (!isRefreshing)
+            if (!viewModel.isRefreshing())
                 loadImages();
         });
 
@@ -100,13 +92,18 @@ public class GalleryActivity extends AppCompatActivity {
 
         gallery.setLayoutManager(new GridLayoutManager(this, columns));
 
-        loadImages();
+        // Trigger load images if there is no image data
+        if(viewModel.getPictures().isEmpty()) {
+            loadImages();
+        } else {
+            setupGallery(viewModel.getPictures());
+        }
     }
 
     @Override
     protected void onDestroy() {
         // Clean up after RxAndroid
-        rxDisposables.clear();
+        viewModel.getRxDisposables().clear();
 
         super.onDestroy();
     }
@@ -135,13 +132,13 @@ public class GalleryActivity extends AppCompatActivity {
         switch (item.getItemId()) {
             case R.id.authorSort:
                 if (adapter != null) {
-                    sortMethod = ALPHA;
+                    viewModel.setSortType(ALPHA);
                     adapter.alphaSort();
                 }
                 return true;
             case R.id.imageSizeSort:
                 if (adapter != null) {
-                    sortMethod = SIZE;
+                    viewModel.setSortType(SIZE);
                     adapter.sizeSort();
                 }
                 return true;
@@ -154,9 +151,9 @@ public class GalleryActivity extends AppCompatActivity {
      * Downloads image details from Lorem Picsum
      */
     private void loadImages() {
-        isRefreshing = true;
+        viewModel.setRefreshing(true);
 
-        rxDisposables.add(Client.getInstance().getPicsumAPI().getImageList()
+        viewModel.getRxDisposables().add(Client.getInstance().getPicsumAPI().getImageList()
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribeWith(new DisposableObserver<Response<List<Picture>>>() {
@@ -181,7 +178,7 @@ public class GalleryActivity extends AppCompatActivity {
 
                     @Override
                     public void onComplete() {
-                        isRefreshing = false;
+                        viewModel.setRefreshing(false);
                         swipeReload.setRefreshing(false);
                     }
                 }));
@@ -195,7 +192,7 @@ public class GalleryActivity extends AppCompatActivity {
     private void setupGallery(List<Picture> newPictures) {
 
         // Pre-sort new image results based on the current sort option
-        switch (sortMethod) {
+        switch (viewModel.getSortType()) {
             case ALPHA:
                 newPictures = SortUtils.alphaSort(newPictures);
                 break;
@@ -208,7 +205,26 @@ public class GalleryActivity extends AppCompatActivity {
 
         // Only update the list if the downloaded image data changed
         if (adapter == null || !adapter.getPictures().equals(newPictures)) {
-            adapter = new GalleryAdapter(this, newPictures, sizeProvider);
+            viewModel.setPictures(newPictures);
+            adapter = new GalleryAdapter(this, viewModel, sizeProvider);
+
+            viewModel.getRxDisposables().add(adapter.clickedPictureEvent().observeOn(AndroidSchedulers.mainThread()).subscribeWith(new DisposableObserver<Picture>() {
+                @Override
+                public void onNext(Picture picture) {
+                    viewFullScreenImage(picture);
+                }
+
+                @Override
+                public void onError(Throwable e) {
+
+                }
+
+                @Override
+                public void onComplete() {
+
+                }
+            }));
+
             gallery.setAdapter(adapter);
 
             RecyclerViewPreloader<Picture> preloader = new RecyclerViewPreloader<>(
@@ -216,5 +232,20 @@ public class GalleryActivity extends AppCompatActivity {
 
             gallery.addOnScrollListener(preloader);
         }
+    }
+
+    /**
+     * Loads an image into a full screen view.
+     *
+     * @param picture The image to display full screen
+     */
+    public void viewFullScreenImage(Picture picture) {
+        Intent intent = new Intent(this, ImageActivity.class);
+        Bundle bundle = new Bundle();
+
+        bundle.putParcelable("picture", Parcels.wrap(picture));
+        intent.putExtras(bundle);
+
+        startActivity(intent);
     }
 }

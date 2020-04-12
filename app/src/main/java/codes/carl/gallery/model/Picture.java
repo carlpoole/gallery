@@ -1,11 +1,14 @@
 package codes.carl.gallery.model;
 
+import org.parceler.Parcel;
+
 import java.math.BigInteger;
 import java.util.Objects;
 
 /**
  * Models a picture retrieved from Lorem Picsum
  */
+@Parcel
 public class Picture {
 
     String id;
