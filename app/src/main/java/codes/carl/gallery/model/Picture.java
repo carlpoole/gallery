@@ -11,11 +11,34 @@ import java.util.Objects;
 @Parcel
 public class Picture {
 
+    /**
+     * The picture id.
+     */
     String id;
+
+    /**
+     * The picture author.
+     */
     String author;
+
+    /**
+     * The width of the picture in pixels.
+     */
     long width;
+
+    /**
+     * The height of the picture in pixels.
+     */
     long height;
+
+    /**
+     * The web page url with more information about the picture.
+     */
     String url;
+
+    /**
+     * The direct download url of the picture.
+     */
     String download_url;
 
     /**
@@ -36,7 +59,7 @@ public class Picture {
     /**
      * Creates a new empty picture with just a "canvas" size.
      *
-     * @param width The width of the blank picture
+     * @param width  The width of the blank picture
      * @param height The height of the blank picture
      */
     public Picture(long width, long height) {
@@ -44,34 +67,69 @@ public class Picture {
         this.height = height;
     }
 
+    /**
+     * Gets the picture id.
+     *
+     * @return The picture id
+     */
     public String getId() {
         return id;
     }
 
+    /**
+     * Gets the author of the picture.
+     *
+     * @return The picture's author
+     */
     public String getAuthor() {
         return author;
     }
 
+    /**
+     * Gets the width of the picture in pixels.
+     *
+     * @return The picture's width
+     */
     public long getWidth() {
         return width;
     }
 
+    /**
+     * Gets the height of the picture in pixels.
+     *
+     * @return The picture's height
+     */
     public long getHeight() {
         return height;
     }
 
+    /**
+     * Gets the web info url for the picture.
+     *
+     * @return The web info url for the picture
+     */
     public String getUrl() {
         return url;
     }
 
+    /**
+     * Gets the direct download url for the picture.
+     *
+     * @return The download url for the picture
+     */
     public String getDownload_url() {
         return download_url;
     }
 
+    /**
+     * Gets the total pixel area of the picture: height * width
+     *
+     * @return The area of the picture in pixels
+     */
     public long totalPixelsSize() {
-        BigInteger area = BigInteger.valueOf(height).multiply(BigInteger.valueOf(width));
+        BigInteger area = BigInteger.valueOf(getHeight()).multiply(BigInteger.valueOf(getWidth()));
 
-        if(area.compareTo(BigInteger.valueOf(Long.MAX_VALUE)) > 0) {
+        if (area.compareTo(BigInteger.valueOf(Long.MAX_VALUE)) > 0) {
             return Long.MAX_VALUE;
         } else if (area.compareTo(BigInteger.ZERO) < 0) {
             return 0;
@@ -80,6 +138,12 @@ public class Picture {
         return area.longValue();
     }
 
+    /**
+     * Determines the equivalence of two different Picture objects.
+     *
+     * @param o An object to compare this picture to
+     * @return whether the picture is equal to the provided object
+     */
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -93,6 +157,11 @@ public class Picture {
                 Objects.equals(download_url, picture.download_url);
     }
 
+    /**
+     * Provides a hash code for the Picture.
+     *
+     * @return A hash code for the picture
+     */
     @Override
     public int hashCode() {
         return Objects.hash(id, author, width, height, url, download_url);

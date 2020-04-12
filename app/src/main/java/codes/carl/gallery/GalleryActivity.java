@@ -2,6 +2,8 @@ package codes.carl.gallery;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.AppCompatButton;
+import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -11,6 +13,7 @@ import android.content.Intent;
 import android.content.res.Configuration;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -20,7 +23,6 @@ import com.bumptech.glide.integration.recyclerview.RecyclerViewPreloader;
 import com.bumptech.glide.util.ViewPreloadSizeProvider;
 
 import org.parceler.Parcels;
-import org.reactivestreams.Subscriber;
 
 import java.util.List;
 
@@ -71,6 +73,16 @@ public class GalleryActivity extends AppCompatActivity {
      */
     GalleryAdapter adapter;
 
+    /**
+     * The modal web view for viewing picture info.
+     */
+    private ConstraintLayout webModal;
+
+    /**
+     * The web info modal
+     */
+    private WebInfoModal webInfoModal;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -81,6 +93,13 @@ public class GalleryActivity extends AppCompatActivity {
         gallery = findViewById(R.id.galleryView);
         swipeReload = findViewById(R.id.swipeReload);
 
+        webModal = findViewById(R.id.web_modal);
+        webInfoModal = new WebInfoModal(this, webModal);
+
+        // Add observer for when info modal is hidden
+        viewModel.getRxDisposables().add(webInfoModal.modalHiddenEvent().observeOn(AndroidSchedulers.mainThread()).subscribe(t -> viewModel.setViewingInfo(false)));
+
+        // Reloads the gallery images when the user pulls down at the top of the gallery grid
         swipeReload.setOnRefreshListener(() -> {
             if (!viewModel.isRefreshing())
                 loadImages();
@@ -93,10 +112,16 @@ public class GalleryActivity extends AppCompatActivity {
         gallery.setLayoutManager(new GridLayoutManager(this, columns));
 
         // Trigger load images if there is no image data
-        if(viewModel.getPictures().isEmpty()) {
+        if (viewModel.getPictures().isEmpty()) {
             loadImages();
         } else {
             setupGallery(viewModel.getPictures());
+        }
+
+        // Reveal the info modal if it was previously open before config change
+        if (viewModel.isViewingInfo()) {
+            webInfoModal.showForm(false);
+            webInfoModal.loadURL(viewModel.getInfoPicture().getUrl());
         }
     }
 
@@ -148,6 +173,25 @@ public class GalleryActivity extends AppCompatActivity {
     }
 
     /**
+     * Detect back press to handle back action in case web view modal is displayed.
+     *
+     * @param keyCode The key pressed
+     * @param event   Key event detected
+     * @return true when event is handled
+     */
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if ((keyCode == KeyEvent.KEYCODE_BACK)) {
+            if (viewModel.isViewingInfo()) {
+                webInfoModal.goBack();
+                return true;
+            }
+        }
+
+        return super.onKeyDown(keyCode, event);
+    }
+
+    /**
      * Downloads image details from Lorem Picsum
      */
     private void loadImages() {
@@ -168,12 +212,14 @@ public class GalleryActivity extends AppCompatActivity {
                             }
                         } else {
                             Log.e(TAG, "Response code: " + response.code());
+                            // Todo: display error view
                         }
                     }
 
                     @Override
                     public void onError(Throwable e) {
                         Log.e(TAG, "Network Error: " + e.getMessage());
+                        // Todo: display error view
                     }
 
                     @Override
@@ -203,34 +249,27 @@ public class GalleryActivity extends AppCompatActivity {
                 break;
         }
 
-        // Only update the list if the downloaded image data changed
-        if (adapter == null || !adapter.getPictures().equals(newPictures)) {
-            viewModel.setPictures(newPictures);
+        // Only setup adapter and view logic if necessary
+        if (adapter == null) {
             adapter = new GalleryAdapter(this, viewModel, sizeProvider);
-
-            viewModel.getRxDisposables().add(adapter.clickedPictureEvent().observeOn(AndroidSchedulers.mainThread()).subscribeWith(new DisposableObserver<Picture>() {
-                @Override
-                public void onNext(Picture picture) {
-                    viewFullScreenImage(picture);
-                }
-
-                @Override
-                public void onError(Throwable e) {
-
-                }
-
-                @Override
-                public void onComplete() {
-
-                }
-            }));
-
             gallery.setAdapter(adapter);
 
             RecyclerViewPreloader<Picture> preloader = new RecyclerViewPreloader<>(
                     Glide.with(this), adapter, sizeProvider, 10);
 
             gallery.addOnScrollListener(preloader);
+
+            // Add observer for the full-screen image viewer
+            viewModel.getRxDisposables().add(adapter.clickedPictureEvent().observeOn(AndroidSchedulers.mainThread()).subscribe(this::viewFullScreenImage));
+
+            // Add observer for the info viewer
+            viewModel.getRxDisposables().add(adapter.clickedInfoEvent().observeOn(AndroidSchedulers.mainThread()).subscribe(this::viewWebModal));
+        }
+
+        // Only update the list if the downloaded image data changed
+        if (!adapter.getPictures().equals(newPictures)) {
+            viewModel.setPictures(newPictures);
+            adapter.notifyDataSetChanged();
         }
     }
 
@@ -239,7 +278,7 @@ public class GalleryActivity extends AppCompatActivity {
      *
      * @param picture The image to display full screen
      */
-    public void viewFullScreenImage(Picture picture) {
+    private void viewFullScreenImage(Picture picture) {
         Intent intent = new Intent(this, ImageActivity.class);
         Bundle bundle = new Bundle();
 
@@ -248,4 +287,17 @@ public class GalleryActivity extends AppCompatActivity {
 
         startActivity(intent);
     }
+
+    /**
+     * Loads a modal webview with more details about a picture.
+     *
+     * @param picture The image to load in the webview
+     */
+    private void viewWebModal(Picture picture) {
+        viewModel.setInfoPicture(picture);
+        viewModel.setViewingInfo(true);
+        webInfoModal.showForm(true);
+        webInfoModal.loadURL(viewModel.getInfoPicture().getUrl());
+    }
+
 }

@@ -10,6 +10,7 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.ListPreloader;
@@ -58,6 +59,11 @@ public class GalleryAdapter extends RecyclerView.Adapter<GalleryAdapter.PictureV
      * Emits the clicked picture to subscribers.
      */
     private PublishSubject<Picture> clickedPicture = PublishSubject.create();
+
+    /**
+     * Emits the clicked info to subscribers.
+     */
+    private PublishSubject<Picture> clickedInfo = PublishSubject.create();
 
     /**
      * Constructs a gallery adapter.
@@ -111,7 +117,7 @@ public class GalleryAdapter extends RecyclerView.Adapter<GalleryAdapter.PictureV
     /**
      * Sorts the pictures in the gallery by the image size.
      */
-    public void sizeSort() {
+    void sizeSort() {
         SortUtils.sizeSort(viewModel.getPictures());
         notifyDataSetChanged();
     }
@@ -121,7 +127,7 @@ public class GalleryAdapter extends RecyclerView.Adapter<GalleryAdapter.PictureV
      *
      * @return The pictures in the gallery
      */
-    public List<Picture> getPictures() {
+    List<Picture> getPictures() {
         return viewModel.getPictures();
     }
 
@@ -141,7 +147,6 @@ public class GalleryAdapter extends RecyclerView.Adapter<GalleryAdapter.PictureV
         holder.loadImage(picture.getDownload_url());
 
         preloadSizeProvider.setView(holder.galleryImage);
-
     }
 
     /**
@@ -178,14 +183,28 @@ public class GalleryAdapter extends RecyclerView.Adapter<GalleryAdapter.PictureV
         return glideRequest.clone().load(item.getDownload_url());
     }
 
-    public Observable<Picture> clickedPictureEvent() {
+    /**
+     * Access observable to subscribe to picture clicked event.
+     *
+     * @return Observer for picture clicked event
+     */
+    Observable<Picture> clickedPictureEvent() {
         return clickedPicture;
+    }
+
+    /**
+     * Access observable to subscribe to info clicked event.
+     *
+     * @return Observer for info clicked event
+     */
+    Observable<Picture> clickedInfoEvent() {
+        return clickedInfo;
     }
 
     /**
      * A ViewHolder representing an individual picture view in the gallery grid.
      */
-    class PictureViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
+    class PictureViewHolder extends RecyclerView.ViewHolder {
 
         /**
          * The picture to display.
@@ -219,7 +238,12 @@ public class GalleryAdapter extends RecyclerView.Adapter<GalleryAdapter.PictureV
             authorName = itemView.findViewById(R.id.authorName);
             infoButton = itemView.findViewById(R.id.infoButton);
 
-            galleryImage.setOnClickListener(this);
+            // Trigger full-screen image viewing when image is tapped
+            galleryImage.setOnClickListener(v -> clickedPicture.onNext(picture));
+
+            // Trigger webview loading when info bar is tapped
+            ConstraintLayout infoBar = itemView.findViewById(R.id.infoBar);
+            infoBar.setOnClickListener(v -> clickedInfo.onNext(picture));
         }
 
         /**
@@ -229,16 +253,6 @@ public class GalleryAdapter extends RecyclerView.Adapter<GalleryAdapter.PictureV
          */
         void loadImage(String url) {
             glideRequest.load(url).into(galleryImage);
-        }
-
-        /**
-         * Handles the behavior when the user clicks a picture in the gallery.
-         *
-         * @param view The clicked view.
-         */
-        @Override
-        public void onClick(View view) {
-            clickedPicture.onNext(picture);
         }
     }
 }
