@@ -19,6 +19,8 @@ Written in Java
 
 - When images are downloaded from Lorem Picsum, Glide caches them locally to memory and disk. This local cache is referenced before the app tries to re-download any images over the network again.
 
+- The gallery view can be refreshed from Lorem Picsum by pulling down at the top of the gallery list. Previously selected sort options apply.
+
 - [ViewModels](https://github.com/carlpoole/gallery/tree/master/app/src/main/java/codes/carl/gallery/model/views) are used to persist app data between configuration changes (screen rotation, split screen, etc.)
 
 - The [sorting methods](https://github.com/carlpoole/gallery/blob/master/app/src/main/java/codes/carl/gallery/utils/SortUtils.java) (by Author name and by image area) are totally custom. This was done for the additional challenge. To avoid stack overflow problems, the sort methods use a stack structure to load and unload operations.
