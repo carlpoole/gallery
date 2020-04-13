@@ -1,14 +1,15 @@
 package codes.carl.gallery;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.AppCompatButton;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.os.Bundle;
@@ -17,10 +18,12 @@ import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.View;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.integration.recyclerview.RecyclerViewPreloader;
 import com.bumptech.glide.util.ViewPreloadSizeProvider;
+import com.github.ybq.android.spinkit.SpinKitView;
 
 import org.parceler.Parcels;
 
@@ -59,6 +62,12 @@ public class GalleryActivity extends AppCompatActivity {
     ViewPreloadSizeProvider<Picture> sizeProvider = new ViewPreloadSizeProvider<>();
 
     /**
+     * Used when the app is fresh and there are no views to show while the
+     * pictures are being downloaded from Lorem Picsum.
+     */
+    SpinKitView loadingProgress;
+
+    /**
      * The layout supporting pull-down-to-refresh behavior.
      */
     SwipeRefreshLayout swipeReload;
@@ -91,6 +100,8 @@ public class GalleryActivity extends AppCompatActivity {
         viewModel = new ViewModelProvider(this).get(GalleryViewModel.class);
 
         gallery = findViewById(R.id.galleryView);
+
+        loadingProgress = findViewById(R.id.loading_spinner);
         swipeReload = findViewById(R.id.swipeReload);
 
         webModal = findViewById(R.id.web_modal);
@@ -113,6 +124,7 @@ public class GalleryActivity extends AppCompatActivity {
 
         // Trigger load images if there is no image data
         if (viewModel.getPictures().isEmpty()) {
+            loadingProgress.setVisibility(View.VISIBLE);
             loadImages();
         } else {
             setupGallery(viewModel.getPictures());
@@ -208,22 +220,23 @@ public class GalleryActivity extends AppCompatActivity {
                             if (response.body() != null && !response.body().isEmpty()) {
                                 setupGallery(response.body());
                             } else {
-                                // Todo: do something else if empty response is possible
+                                showEmptyMessage();
                             }
                         } else {
                             Log.e(TAG, "Response code: " + response.code());
-                            // Todo: display error view
+                            showDownloadError("Unable to download images from server - Code " + response.code());
                         }
                     }
 
                     @Override
                     public void onError(Throwable e) {
                         Log.e(TAG, "Network Error: " + e.getMessage());
-                        // Todo: display error view
+                        showDownloadError(e.getMessage());
                     }
 
                     @Override
                     public void onComplete() {
+                        loadingProgress.setVisibility(View.GONE);
                         viewModel.setRefreshing(false);
                         swipeReload.setRefreshing(false);
                     }
@@ -298,6 +311,35 @@ public class GalleryActivity extends AppCompatActivity {
         viewModel.setViewingInfo(true);
         webInfoModal.showForm(true);
         webInfoModal.loadURL(viewModel.getInfoPicture().getUrl());
+    }
+
+    /**
+     * Display an alert in case of network trouble to allow user to try again.
+     */
+    private void showDownloadError(String message) {
+
+        if (message.contains("Unable to resolve host")) {
+            message = "Please check internet and try again";
+        }
+
+        showAlertDialog("Problem", message);
+    }
+
+    /**
+     * Display an alert in case the API gives us an empty result set.
+     */
+    private void showEmptyMessage() {
+        showAlertDialog("Whoops", "There are no images to view at this time!");
+    }
+
+    private void showAlertDialog(String title, String message) {
+        AlertDialog.Builder alertBuilder = new AlertDialog.Builder(this);
+        alertBuilder.setTitle(title);
+        alertBuilder.setMessage(message)
+                .setPositiveButton("Retry", (dialog, id) -> loadImages())
+                .setNegativeButton("Quit", (dialog, id) -> finish());
+
+        alertBuilder.create().show();
     }
 
 }
