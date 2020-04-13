@@ -232,13 +232,12 @@ public class GalleryActivity extends AppCompatActivity {
                     public void onError(Throwable e) {
                         Log.e(TAG, "Network Error: " + e.getMessage());
                         showDownloadError(e.getMessage());
+                        hideProgress();
                     }
 
                     @Override
                     public void onComplete() {
-                        loadingProgress.setVisibility(View.GONE);
-                        viewModel.setRefreshing(false);
-                        swipeReload.setRefreshing(false);
+                        hideProgress();
                     }
                 }));
     }
@@ -284,6 +283,15 @@ public class GalleryActivity extends AppCompatActivity {
             viewModel.setPictures(newPictures);
             adapter.notifyDataSetChanged();
         }
+    }
+
+    /**
+     * Hide progress views
+     */
+    private void hideProgress() {
+        loadingProgress.setVisibility(View.GONE);
+        viewModel.setRefreshing(false);
+        swipeReload.setRefreshing(false);
     }
 
     /**
@@ -337,7 +345,16 @@ public class GalleryActivity extends AppCompatActivity {
         alertBuilder.setTitle(title);
         alertBuilder.setMessage(message)
                 .setPositiveButton("Retry", (dialog, id) -> loadImages())
-                .setNegativeButton("Quit", (dialog, id) -> finish());
+                .setNegativeButton("Cancel", (dialog, id) -> {
+
+                    /*
+                        If an error occurred but there are images downloaded to view, allow
+                        the user to continue viewing downloaded images, otherwise quit.
+                     */
+                    if (viewModel.getPictures().isEmpty()) {
+                        finish();
+                    }
+                });
 
         alertBuilder.create().show();
     }
