@@ -49,7 +49,7 @@
             app:layout_constraintStart_toEndOf="@id/authorName"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            android:contentDescription="More Information" />
+            android:contentDescription="@string/more_information" />
 
 
     </androidx.constraintlayout.widget.ConstraintLayout>

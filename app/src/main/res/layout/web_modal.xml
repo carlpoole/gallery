@@ -2,9 +2,9 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/web_modal"
-    android:background="@color/info_background"
+    android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:layout_width="match_parent">
+    android:background="@color/info_background">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/modal_window"
@@ -23,7 +23,7 @@
             app:layout_constraintBottom_toTopOf="@id/browser_controls"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"/>
+            app:layout_constraintTop_toTopOf="parent" />
 
         <LinearLayout
             android:id="@+id/browser_controls"
@@ -45,9 +45,8 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:backgroundTint="@color/colorPrimary"
-                android:elevation="3dp"
                 android:padding="18dp"
-                android:text="Back"
+                android:text="@string/web_back"
                 android:textAllCaps="false"
                 android:textColor="@android:color/white" />
 
@@ -57,9 +56,8 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:backgroundTint="@color/colorPrimary"
-                android:elevation="3dp"
                 android:padding="18dp"
-                android:text="Forward"
+                android:text="@string/web_forward"
                 android:textAllCaps="false"
                 android:textColor="@android:color/white" />
 
@@ -69,9 +67,8 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:backgroundTint="@color/colorPrimary"
-                android:elevation="3dp"
                 android:padding="18dp"
-                android:text="Refresh"
+                android:text="@string/web_refresh"
                 android:textAllCaps="false"
                 android:textColor="@android:color/white" />
 
