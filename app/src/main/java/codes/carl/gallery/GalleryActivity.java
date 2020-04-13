@@ -340,6 +340,12 @@ public class GalleryActivity extends AppCompatActivity {
         showAlertDialog("Whoops", "There are no images to view at this time!");
     }
 
+    /**
+     * Creates an alert dialog to retry or cancel image loading based on provided text.
+     *
+     * @param title The title for the dialog
+     * @param message The message for the dialog
+     */
     private void showAlertDialog(String title, String message) {
         AlertDialog.Builder alertBuilder = new AlertDialog.Builder(this);
         alertBuilder.setTitle(title);
