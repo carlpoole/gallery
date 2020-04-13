@@ -19,6 +19,7 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.FrameLayout;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.integration.recyclerview.RecyclerViewPreloader;
@@ -85,7 +86,7 @@ public class GalleryActivity extends AppCompatActivity {
     /**
      * The modal web view for viewing picture info.
      */
-    private ConstraintLayout webModal;
+    private FrameLayout webModal;
 
     /**
      * The web info modal

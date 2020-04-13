@@ -6,5 +6,6 @@
 
     <color name="black_overlay">#66000000</color>
     <color name="author_background">#66000000</color>
+    <color name="info_background">#A1000000</color>
     <color name="windowBackground">#FAFAFA</color>
 </resources>

@@ -1,81 +1,83 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/web_modal"
-    android:layout_width="0dp"
-    android:layout_height="0dp"
-    android:background="@android:color/white"
-    android:elevation="4dp">
+    android:background="@color/info_background"
+    android:layout_height="match_parent"
+    android:layout_width="match_parent">
 
-    <FrameLayout
-        android:id="@+id/info_web_view"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        app:layout_constraintBottom_toTopOf="@id/browser_controls"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"/>
-
-<!--    <WebView-->
-<!--        android:id="@+id/info_web_view"-->
-<!--        android:layout_width="0dp"-->
-<!--        android:layout_height="0dp"-->
-<!--        app:layout_constraintBottom_toTopOf="@id/browser_controls"-->
-<!--        app:layout_constraintEnd_toEndOf="parent"-->
-<!--        app:layout_constraintStart_toStartOf="parent"-->
-<!--        app:layout_constraintTop_toTopOf="parent" />-->
-
-    <LinearLayout
-        android:id="@+id/browser_controls"
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/modal_window"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         android:layout_marginStart="16dp"
-        android:layout_marginTop="24dp"
+        android:layout_marginTop="16dp"
         android:layout_marginEnd="16dp"
-        android:layout_marginBottom="16dp"
-        android:orientation="horizontal"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/info_web_view">
+        android:background="@android:color/white"
+        android:elevation="4dp">
 
-        <androidx.appcompat.widget.AppCompatButton
-            android:id="@+id/browser_back"
+        <FrameLayout
+            android:id="@+id/info_web_view"
             android:layout_width="0dp"
+            android:layout_height="0dp"
+            app:layout_constraintBottom_toTopOf="@id/browser_controls"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"/>
+
+        <LinearLayout
+            android:id="@+id/browser_controls"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:backgroundTint="@color/colorPrimary"
-            android:elevation="3dp"
-            android:padding="18dp"
-            android:text="Back"
-            android:textAllCaps="false"
-            android:textColor="@android:color/white" />
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="24dp"
+            android:layout_marginEnd="16dp"
+            android:layout_marginBottom="16dp"
+            android:orientation="horizontal"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/info_web_view">
 
-        <androidx.appcompat.widget.AppCompatButton
-            android:id="@+id/browser_forward"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:backgroundTint="@color/colorPrimary"
-            android:elevation="3dp"
-            android:padding="18dp"
-            android:text="Forward"
-            android:textAllCaps="false"
-            android:textColor="@android:color/white" />
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/browser_back"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:backgroundTint="@color/colorPrimary"
+                android:elevation="3dp"
+                android:padding="18dp"
+                android:text="Back"
+                android:textAllCaps="false"
+                android:textColor="@android:color/white" />
 
-        <androidx.appcompat.widget.AppCompatButton
-            android:id="@+id/browser_refresh"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:backgroundTint="@color/colorPrimary"
-            android:elevation="3dp"
-            android:padding="18dp"
-            android:text="Refresh"
-            android:textAllCaps="false"
-            android:textColor="@android:color/white" />
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/browser_forward"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:backgroundTint="@color/colorPrimary"
+                android:elevation="3dp"
+                android:padding="18dp"
+                android:text="Forward"
+                android:textAllCaps="false"
+                android:textColor="@android:color/white" />
 
-    </LinearLayout>
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/browser_refresh"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:backgroundTint="@color/colorPrimary"
+                android:elevation="3dp"
+                android:padding="18dp"
+                android:text="Refresh"
+                android:textAllCaps="false"
+                android:textColor="@android:color/white" />
+
+        </LinearLayout>
 
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</FrameLayout>

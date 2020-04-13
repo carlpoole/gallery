@@ -27,7 +27,7 @@ class WebInfoModal {
     /**
      * The container layout for the entire web info modal.
      */
-    private ConstraintLayout webModal;
+    private FrameLayout webModal;
 
     /**
      * The layout location where the web view is placed in the info modal.
@@ -50,13 +50,18 @@ class WebInfoModal {
      * @param context  The activity context where the view is located
      * @param webModal The view used for the info modal
      */
-    WebInfoModal(Context context, ConstraintLayout webModal) {
+    WebInfoModal(Context context, FrameLayout webModal) {
         this.context = context;
         this.webModal = webModal;
 
         webFrame = webModal.findViewById(R.id.info_web_view);
 
-        webModal.setOnClickListener(null);
+        // dismiss modal view if tapped outside
+        webModal.setOnClickListener(v -> hideForm());
+
+        // ignore taps on the frame of the modal to prevent accidental dismissal
+        ConstraintLayout modalFrame = webModal.findViewById(R.id.modal_window);
+        modalFrame.setOnClickListener(null);
 
         AppCompatButton browserBack = webModal.findViewById(R.id.browser_back);
         browserBack.setOnClickListener(v -> goBack());
